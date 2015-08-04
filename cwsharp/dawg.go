@@ -263,7 +263,7 @@ func (coder *dawgCoder) Encode(w *bufio.Writer, dawg *dawg) {
 	count = 0
 	for _, k := range p {
 		node := k.node
-		binary.Write(w, binary.LittleEndian, node.char)
+		binary.Write(w, binary.LittleEndian, uint16(node.char))
 		binary.Write(w, binary.LittleEndian, node.frequency)
 		binary.Write(w, binary.LittleEndian, node.depth)
 		var eow byte
@@ -312,7 +312,9 @@ func (coder *dawgCoder) Decode(r *bufio.Reader) *dawg {
 	allNodes := make([]*dawgNode, count)
 	for i := int32(0); i < count; i++ {
 		node := &dawgNode{eow: false}
-		binary.Read(r, binary.LittleEndian, &node.char)
+		var char uint16
+		binary.Read(r, binary.LittleEndian, &char)
+		node.char = rune(char)
 		binary.Read(r, binary.LittleEndian, &node.frequency)
 		binary.Read(r, binary.LittleEndian, &node.depth)
 		var eow byte
