@@ -15,7 +15,7 @@ import (
 func main() {
 	BuildDawgFile()
 	//TEST
-	TestStandard("d:\\cwsharp.dawg", "一次性交100元")
+	TestStandard("cwsharp.dawg", "一次性交100元")
 }
 
 /*
@@ -23,10 +23,10 @@ func main() {
 */
 func BuildDawgFile() {
 	//词频文件
-	var file_freq string = "D:\\code\\CWSharp\\dict\\cwsharp.freq"
+	var file_freq string = "cwsharp.freq"
 	//字典文件
-	var file_dict string = "D:\\code\\CWSharp\\dict\\cwsharp.dic"
-	var dawg_savePath string = "d:\\cwsharp.dawg"
+	var file_dict string = "cwsharp.dic"
+	var dawg_savePath string = "cwsharp.dawg"
 	var words = &cwsharp.WordUtil{}
 	f, err := os.Open(file_freq)
 	if err != nil {
