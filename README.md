@@ -4,9 +4,9 @@ Go中文分词库，支持中英文，混合词组，自定义字典。[CWSharp]
 
 安装&运行
 ====
->> go get github.com/zhengchun/cwsharp-go
+> go get github.com/zhengchun/cwsharp-go
 
->> go run test.go
+> go run test.go
 
 说明
 ====
