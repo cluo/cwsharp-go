@@ -5,7 +5,9 @@ package cwsharp
 
 import (
 	"bufio"
+	"net/http"
 	"os"
+	"strings"
 )
 
 //标准的中文分词器
@@ -32,12 +34,24 @@ func (this *StandardTokenizer) Traverse(text string) TokenIterator {
 }
 
 func (this *StandardTokenizer) init(file string, ignoreCase bool) {
-	f, err := os.Open(file)
-	if err != nil {
-		panic(err)
+	file = strings.ToLower(file)
+	var r *bufio.Reader
+	if strings.Index(file, "http://") >= 0 || strings.Index(file, "https://") >= 0 {
+		response, err := http.Get(file)
+		if err != nil {
+			panic(err)
+		}
+		defer response.Body.Close()
+		r = bufio.NewReader(response.Body)
+
+	} else {
+		f, err := os.Open(file)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		r = bufio.NewReader(f)
 	}
-	defer f.Close()
-	r := bufio.NewReader(f)
 	coder := dawgCoder{DawgFileVersion}
 	dawg := coder.Decode(r)
 	this.dawg = dawg
