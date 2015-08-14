@@ -3,6 +3,10 @@
 
 package cwsharp
 
+import (
+	"fmt"
+)
+
 type TokenType int
 
 var TokenType_PUNC, TokenType_ALPHANUM, TokenType_NUM, TokenType_CJK TokenType = 1, 2, 3, 4
@@ -14,9 +18,9 @@ type Token struct {
 
 var token_empty = Token{"", TokenType_PUNC}
 
-func (token Token) String() string {
+func (this TokenType) String() string {
 	tokenType := "UNKNOW"
-	switch token.Type {
+	switch this {
 	case TokenType_PUNC:
 		tokenType = "PUNC"
 	case TokenType_ALPHANUM:
@@ -26,14 +30,18 @@ func (token Token) String() string {
 	case TokenType_CJK:
 		tokenType = "CJK"
 	}
-	return token.Text + ":" + tokenType
+	return tokenType
+}
+
+func (token *Token) String() string {
+	return fmt.Sprintf("%s:%s", token.Text, token.Type)
 }
 
 func (token *Token) Length() int {
 	return len(token.Text)
 }
 
-func (token *Token) SetBuffer(text string) *Token {
+func (token *Token) SetText(text string) *Token {
 	token.Text = text
 	return token
 }
@@ -44,7 +52,7 @@ func (token *Token) SetType(_type TokenType) *Token {
 }
 
 func (token *Token) IsNull() bool {
-	return token.Text == ""
+	return len(token.Text) == 0
 }
 
 func NewToken(text string, _type TokenType) Token {
