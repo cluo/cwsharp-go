@@ -19,4 +19,22 @@ Go中文分词库，支持中英文，混合词组，自定义字典。[CWSharp]
 
 - WordUtil.go - 提供字典管理帮助类
 
-使用帮助可以查看对应的测试用例。
+类的使用可以查看对应的测试用例。
+
+示例
+====
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/zhengchun/cwsharp-go/cwsharp"
+)
+
+func main() {
+	tokenizer := cwsharp.NewStandardTokenizer("data//cwsharp.dawg", true)
+	for token, next := tokenizer.Traverse("一次性交100元")(); next != nil; token, next = next() {
+		fmt.Printf("%s:%s\n", token.Text, token.Type)
+	}
+}
+```
