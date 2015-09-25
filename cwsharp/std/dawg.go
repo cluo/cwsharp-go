@@ -1,7 +1,4 @@
-// Copyright (c) CWSharp. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-package cwsharp
+package std
 
 import (
 	"bufio"
@@ -9,6 +6,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"sort"
 )
 
@@ -352,4 +350,10 @@ func (coder *dawgCoder) Decode(r *bufio.Reader) *dawg {
 		}
 	}
 	return &dawg{root}
+}
+
+func fnvHash(input []byte) uint32 {
+	h := fnv.New32()
+	h.Write(input)
+	return h.Sum32()
 }

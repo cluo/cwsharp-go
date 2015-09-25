@@ -1,10 +1,14 @@
-// Copyright (c) CWSharp. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
 package cwsharp
 
 type Tokenizer interface {
-	Traverse(text string) TokenIterator
+	Traverse(r Reader) Traverser
 }
 
-type TokenIterator func() (Token, TokenIterator)
+type Breaker interface {
+	Next() (Token, error)
+}
+
+type Traverser interface {
+	Next() bool
+	Cur() Token
+}

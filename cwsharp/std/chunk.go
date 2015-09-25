@@ -1,7 +1,4 @@
-// Copyright (c) CWSharp. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-package cwsharp
+package std
 
 import (
 	"math"
@@ -14,16 +11,6 @@ type wordPoint struct {
 type chunk struct {
 	Length     int
 	WordPoints []wordPoint
-}
-
-func (this *chunk) Print(sr *stringReader) string {
-	//{0}_{1}_{2}_{3}
-	var sb string
-	for _, word := range this.WordPoints {
-		runes := sr.s[word.Offset : word.Length+word.Offset]
-		sb = sb + string(runes) + "_"
-	}
-	return sb
 }
 
 func (this *chunk) Get(index int) wordPoint {

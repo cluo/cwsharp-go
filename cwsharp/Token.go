@@ -1,6 +1,3 @@
-// Copyright (c) CWSharp. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
 package cwsharp
 
 import (
@@ -9,52 +6,57 @@ import (
 
 type TokenType int
 
-var TokenType_PUNC, TokenType_ALPHANUM, TokenType_NUM, TokenType_CJK TokenType = 1, 2, 3, 4
+const (
+	PUNC     TokenType = (iota + 1) //标号
+	ALPHANUM                        //混合，包含字母、数字或其它连接符
+	NUMERAL                         //数字
+	CJK                             //中文
+)
 
 type Token struct {
-	Text string
-	Type TokenType
+	text string
+	kind TokenType
 }
 
-var token_empty = Token{"", TokenType_PUNC}
-
-func (this TokenType) String() string {
+func (t TokenType) String() string {
 	tokenType := "UNKNOW"
-	switch this {
-	case TokenType_PUNC:
+	switch t {
+	case PUNC:
 		tokenType = "PUNC"
-	case TokenType_ALPHANUM:
+	case ALPHANUM:
 		tokenType = "ALPHANUM"
-	case TokenType_NUM:
-		tokenType = "NUM"
-	case TokenType_CJK:
+	case NUMERAL:
+		tokenType = "NUMERAL"
+	case CJK:
 		tokenType = "CJK"
 	}
 	return tokenType
 }
 
-func (token *Token) String() string {
-	return fmt.Sprintf("%s:%s", token.Text, token.Type)
+func (t *Token) String() string {
+	return fmt.Sprintf("%s:%s", t.text, t.kind)
 }
 
-func (token *Token) Length() int {
-	return len(token.Text)
+func (t *Token) Length() int {
+	return len(t.text)
 }
 
-func (token *Token) SetText(text string) *Token {
-	token.Text = text
-	return token
+func (t *Token) Text() string {
+	return t.text
 }
 
-func (token *Token) SetType(_type TokenType) *Token {
-	token.Type = _type
-	return token
+func (t *Token) Type() TokenType {
+	return t.kind
 }
 
-func (token *Token) IsNull() bool {
-	return len(token.Text) == 0
+// 更改Token的内容
+func (t *Token) SetText(text string) *Token {
+	t.text = text
+	return t
 }
 
-func NewToken(text string, _type TokenType) Token {
-	return Token{Text: text, Type: _type}
+// 更改Token类型
+func (t *Token) SetType(k TokenType) *Token {
+	t.kind = k
+	return t
 }
