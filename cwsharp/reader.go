@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-var _EOF rune = -1
+var EOF rune = -1
 
 type Reader interface {
 	ReadRule() rune
@@ -29,7 +29,7 @@ func (r *buffReader) Init(src []rune) {
 
 func (r *buffReader) ReadRule() rune {
 	ch := r.Peek()
-	if ch != _EOF {
+	if ch != EOF {
 		r.off++
 	}
 	return ch
@@ -37,7 +37,7 @@ func (r *buffReader) ReadRule() rune {
 
 func (r *buffReader) Peek() rune {
 	if r.off+1 >= len(r.src) {
-		return _EOF
+		return EOF
 	}
 	return r.src[r.off+1]
 }

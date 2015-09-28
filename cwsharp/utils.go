@@ -4,11 +4,11 @@ func isLetterCase(c rune) bool {
 	return (c >= 0x41 && c <= 0x5A) || (c >= 0x61 && c <= 0x7A)
 }
 
-func isUpperCase(c rune) bool {
+func isLetterUpperCase(c rune) bool {
 	return c >= 0x41 && c <= 0x5A
 }
 
-func isLowercase(c rune) bool {
+func isLetterLowerCase(c rune) bool {
 	return c >= 0x61 && c <= 0x7A
 }
 
@@ -18,8 +18,4 @@ func isNumeralCase(c rune) bool {
 
 func isCjkCase(c rune) bool {
 	return c >= 0x4e00 && c <= 0x9fa5
-}
-
-func isNull(c rune) bool {
-	return c == 0
 }
