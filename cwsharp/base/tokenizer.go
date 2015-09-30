@@ -1,19 +1,26 @@
-// base包提供对包含英文、数字或字符分隔符组成的字符串分词
+// 英文分词包，提供对包含英文、数字或字符分隔符组成的字符串分词
 package base
 
 import (
+	"fmt"
 	"github.com/zhengchun/cwsharp-go/cwsharp"
 	"unicode"
 )
 
 const (
-	KPunct  cwsharp.TokenType = (iota + 1) //标点符号
-	KNumber                                //数字，包含小数
-	KLetter                                //包含字母或数字混合
-	KOther                                 //其它字符
+	KPunct   cwsharp.TokenType = iota //标点符号
+	KNumber                           //数字，包含小数
+	KLetter                           //包含字母或数字混合
+	KUnicode                          //其它字符
 )
 
 type Tokenizer struct {
+	cwsharp.Tokenizer
+}
+
+type Token struct {
+	text string
+	kind cwsharp.TokenType
 }
 
 type TextBreaker struct {
@@ -21,8 +28,11 @@ type TextBreaker struct {
 	p      *Tokenizer
 	reader cwsharp.Reader
 	// 自定义字符组合的策略
-	CheckContinue func(r rune, n rune, via []rune) (cwsharp.TokenType, bool)
-	cwsharp.TextBreaker
+	CheckContinue func(r cwsharp.Reader, ch rune, via []rune) (cwsharp.TokenType, bool)
+}
+
+type TokenIterator struct {
+	b *TextBreaker
 }
 
 func (t *Tokenizer) Traverse(r cwsharp.Reader) cwsharp.TokenIterator {
@@ -36,38 +46,70 @@ func New() *Tokenizer {
 	return &Tokenizer{}
 }
 
-func defaultCheckContinue(r rune, n rune, via []rune) (cwsharp.TokenType, bool) {
-	if unicode.IsSpace(r) {
-		return KPunct, false
-	} else if unicode.IsPunct(r) {
-		/*
-			U.S.A
-		*/
-		return KPunct, false
-	} else if unicode.IsLower(r) || unicode.IsUpper(r) {
-		return KLetter, true
-	} else if unicode.IsNumber(r) {
-		return KNumber, true
-	}
-	return KOther, false
+func (t *Token) Text() string {
+	return t.text
 }
 
-func (b *TextBreaker) NextToken() (t cwsharp.Token, err error) {
+func (t *Token) Kind() cwsharp.TokenType {
+	return t.kind
+}
+
+func (t *Token) String() string {
+	k := "Unicode"
+	switch t.kind {
+	case KPunct:
+		{
+			k = "Punct"
+		}
+	case KLetter:
+		{
+			k = "Letter"
+		}
+	case KNumber:
+		{
+			k = "Number"
+		}
+	}
+	return fmt.Sprintf("%s, %s", t.text, k)
+}
+
+func DefaultCheckContinue(r cwsharp.Reader, ch rune, via []rune) (cwsharp.TokenType, bool) {
+	if unicode.IsSpace(ch) {
+		return KPunct, false
+	} else if unicode.IsPunct(ch) {
+		/*
+			U.S.A
+			22.3
+			abc-hello
+			name@domain.com
+		*/
+		return KPunct, false
+	} else if unicode.IsLower(ch) || unicode.IsUpper(ch) {
+		return KLetter, true
+	} else if unicode.IsNumber(ch) {
+		return KNumber, true
+	}
+	return KUnicode, false
+}
+
+func (b *TextBreaker) NextToken() (cwsharp.Token, error) {
+	var err error
+	t := &Token{}
 	if b.CheckContinue == nil {
-		b.CheckContinue = defaultCheckContinue
+		b.CheckContinue = DefaultCheckContinue
 	}
 	var via []rune
 	r := b.reader
 	for ch, d := r.ReadRule(), 0; ch != cwsharp.EOF; ch = r.ReadRule() {
 		ch = normalizeRule(ch)
-		k, ok := b.CheckContinue(ch, r.Peek(), via)
+		k, ok := b.CheckContinue(r, ch, via)
 		if ok {
 			via = append(via, ch)
-			t.SetType(k)
+			t.kind = k
 		} else {
 			if d == 0 {
 				via = append(via, ch)
-				t.SetType(k)
+				t.kind = k
 			} else {
 				r.Seek(r.Pos() - 1)
 			}
@@ -78,8 +120,8 @@ func (b *TextBreaker) NextToken() (t cwsharp.Token, err error) {
 	if len(via) == 0 {
 		err = cwsharp.DONE
 	}
-	t.SetText(string(via))
-	return
+	t.text = string(via)
+	return t, err
 }
 
 func (b *TextBreaker) Next() bool {
