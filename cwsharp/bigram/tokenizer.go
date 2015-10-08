@@ -1,102 +1,91 @@
 // 二元分词包
-package ngram
+package bigram
 
 import (
+	"errors"
 	"fmt"
 	"github.com/zhengchun/cwsharp-go/cwsharp"
-	"github.com/zhengchun/cwsharp-go/cwsharp/base"
+	"github.com/zhengchun/cwsharp-go/cwsharp/simple"
 	"unicode"
 )
 
-type Tokenizer struct {
-	inst cwsharp.Tokenizer
-}
+var done error = errors.New("No more token to read.")
 
-const (
-	KPunct   cwsharp.TokenType = iota //标点符号
-	KNumber                           //数字，包含小数
-	KLetter                           //包含字母或数字混合
-	KUnicode                          //其它字符
-	KCjk                              //中文
-)
+type Tokenizer struct {
+}
 
 type Token struct {
 	text string
-	kind cwsharp.TokenType
+	kind cwsharp.Kind
 }
 
-type TextBreaker struct {
-	cur    cwsharp.Token
-	p      *Tokenizer
+type TokenIterator struct {
+	state  bool
+	inner  cwsharp.TokenIterator
+	ch     cwsharp.Token
 	reader cwsharp.Reader
-	wrap   *base.TextBreaker
-	cwsharp.TextBreaker
 }
 
 func New() *Tokenizer {
-	return &Tokenizer{inst: base.New()}
+	return &Tokenizer{}
 }
 
 func (t *Tokenizer) Traverse(r cwsharp.Reader) cwsharp.TokenIterator {
-	wrap := t.inst.Traverse(r).(base.TextBreaker)
-	return &TextBreaker{
-		p:      t,
+	return &TokenIterator{
+		inner:  simple.New().Traverse(r),
 		reader: r,
-		wrap:   wrap,
+		state:  true,
 	}
+}
+
+func (iter *TokenIterator) Next() bool {
+	ch := iter.reader.Peek()
+	if ch == cwsharp.EOF {
+		return false
+	}
+	if isCjk(ch) {
+		//二元分词包
+		if via, ok := cjkToken(iter.reader, iter.state); ok {
+			iter.ch = &Token{string(via), cwsharp.CJK}
+			iter.state = false
+			return true
+		}
+	}
+	iter.state = true
+	//交给默认的分词包处理
+	if iter.inner.Next() {
+		iter.ch = iter.inner.Cur()
+		return true
+	}
+	return false
+}
+
+func (iter *TokenIterator) Cur() cwsharp.Token {
+	return iter.ch
+}
+
+func cjkToken(r cwsharp.Reader, s bool) ([]rune, bool) {
+	ch := r.ReadRule()
+	if c := r.Peek(); c != cwsharp.EOF && isCjk(c) {
+		return []rune{ch, r.Peek()}, true
+	} else if s {
+		return []rune{ch}, true
+	}
+	return nil, false
+}
+
+func isCjk(c rune) bool {
+	return unicode.Is(unicode.Scripts["Han"], c)
 }
 
 func (t *Token) Text() string {
 	return t.text
 }
 
-func (t *Token) Kind() cwsharp.TokenType {
+func (t *Token) Kind() cwsharp.Kind {
 	return t.kind
 }
 
 func (t *Token) String() string {
-	k := "Unicode"
-	switch t.kind {
-	case KPunct:
-		{
-			k = "Punct"
-		}
-	case KLetter:
-		{
-			k = "Letter"
-		}
-	case KNumber:
-		{
-			k = "Number"
-		}
-	case KCjk:
-		{
-			k = "Cjk"
-		}
-	}
-	return fmt.Sprintf("%s, %s", t.text, k)
-}
-
-func (b *TextBreaker) NextToken() (cwsharp.Token, error) {
-	var err error
-	r := b.reader.Peek()
-	if unicode.Is(unicode.Scripts["Han"], r) {
-		return &Token{}, nil
-	} else {
-		//交给默认的分词包处理
-		return b.NextToken()
-	}
-}
-
-func (b *TextBreaker) Next() bool {
-	t, err := b.NextToken()
-	if err != nil || err == cwsharp.DONE {
-		return false
-	}
-	b.cur = t
-	return true
-}
-
-func (b *TextBreaker) Cur() cwsharp.Token {
-	return b.cur
+	return fmt.Sprintf("%s : %s", t.text, t.kind)
 }

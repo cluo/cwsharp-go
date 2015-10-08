@@ -1,27 +1,22 @@
 package cwsharp
 
-import (
-	"errors"
-	"fmt"
-)
-
 type buffReader struct {
 	src []rune
 	off int
-
 	Reader
 }
 
 func (r *buffReader) Init(src []rune) {
 	r.src = src
-	r.off = -1
+	r.off = 0
 }
 
 func (r *buffReader) ReadRule() rune {
-	ch := r.Peek()
-	if ch != EOF {
-		r.off++
+	if r.off >= len(r.src) {
+		return EOF
 	}
+	ch := r.src[r.off]
+	r.off += 1
 	return ch
 }
 
@@ -33,9 +28,6 @@ func (r *buffReader) Peek() rune {
 }
 
 func (r *buffReader) Seek(offset int) {
-	if offset < 0 || offset >= len(r.src) {
-		panic(errors.New(fmt.Sprintf("offset<0 || offset>=%d", len(r.src))))
-	}
 	r.off = offset
 }
 
