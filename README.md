@@ -1,6 +1,6 @@
 ﻿CWSharp-Go
 ====
-Go中文分词库，支持中英文，混合词组，自定义字典。[CWSharp](https://github.com/yamool/CWSharp)的Golang版本.
+中文分词包(golang)，支持中英文，混合词组，自定义字典，具有良好的自定义分词扩展。[CWSharp](https://github.com/yamool/CWSharp)的Golang版本.
 
 安装&运行
 ====
@@ -8,18 +8,15 @@ Go中文分词库，支持中英文，混合词组，自定义字典。[CWSharp]
 
 > go run test.go
 
-说明
+分词包列表
 ====
+目前提供三种分词包，不同的分词包采用不同的分词算法
 
-- StandardTokenizer.go - 基于词典的分词类
+- simple - 简单的分词包,提供基本的字母或数字的分词功能，输出单个中文字符(一元分词)
 
-- BigramTokenizer.go - 二元分词类
+- bigram - 二元分词包
 
-- StopwordTokenizer.go - 扩展类，提供过滤词的分词
-
-- WordUtil.go - 提供字典管理帮助类
-
-类的使用可以查看对应的测试用例。
+- mmseg -  基于词典的分词包,支持自定义字典和中英文混合
 
 示例
 ====
@@ -29,12 +26,14 @@ package main
 import (
 	"fmt"
 	"github.com/zhengchun/cwsharp-go/cwsharp"
+	"github.com/zhengchun/cwsharp-go/cwsharp/mmseg"
 )
 
 func main() {
-	tokenizer := cwsharp.NewStandardTokenizer("data//cwsharp.dawg", true)
-	for token, next := tokenizer.Traverse("一次性交100元")(); next != nil; token, next = next() {
-		fmt.Printf("%s:%s\n", token.Text, token.Type)
+	tokenizer := mmseg.New("data//cwsharp.dawg")
+	for iter := tokenizer.Traverse(cwsharp.ReadString(text)); iter.Next(); {
+		token:=iter.Cur()
+		fmt.Printf("%s:%s\n", token.Text(), token.Kind())
 	}
 }
 ```

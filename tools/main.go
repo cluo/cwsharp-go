@@ -1,12 +1,11 @@
-// Copyright (c) CWSharp. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
+// 工具类，生成MMSEG分词包采用的字典
 package main
 
 import (
 	"bufio"
 	"fmt"
 	"github.com/zhengchun/cwsharp-go/cwsharp"
+	"github.com/zhengchun/cwsharp-go/cwsharp/mmseg"
 	"os"
 	"strconv"
 	"strings"
@@ -27,7 +26,7 @@ func BuildDawgFile() {
 	//字典文件
 	var file_dict string = "cwsharp.dic"
 	var dawg_savePath string = "cwsharp.dawg"
-	var words = &cwsharp.WordUtil{}
+	var words = &mmseg.WordUtil{}
 	f, err := os.Open(file_freq)
 	if err != nil {
 		panic(err)
@@ -64,9 +63,9 @@ func BuildDawgFile() {
 //标准分词测试
 func TestStandard(dawgFile string, text string) {
 	fmt.Println("测试：" + text)
-	tokenizer := cwsharp.NewStandardTokenizer(dawgFile, true)
-	for token, next := tokenizer.Traverse(text)(); next != nil; token, next = next() {
-		fmt.Print(token.String())
+	tokenizer := mmseg.New(dawgFile)
+	for iter := tokenizer.Traverse(cwsharp.NewStringReader(text)); iter.Next(); {
+		fmt.Print(iter.Cur())
 		fmt.Print(" / ")
 	}
 	fmt.Println()

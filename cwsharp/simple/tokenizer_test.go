@@ -9,9 +9,7 @@ import (
 func Test(t *testing.T) {
 	var input string = "Hello,World!你好，世界!"
 	tokenizer := New()
-	iter := tokenizer.Traverse(cwsharp.NewStringReader(input))
-	for iter.Next() {
+	for iter := tokenizer.Traverse(cwsharp.ReadString(input)); iter.Next(); {
 		fmt.Println(iter.Cur())
 	}
-
 }

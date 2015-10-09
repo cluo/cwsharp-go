@@ -1,16 +1,17 @@
-﻿package main
+package main
 
 import (
 	"fmt"
 	"github.com/zhengchun/cwsharp-go/cwsharp"
+	"github.com/zhengchun/cwsharp-go/cwsharp/mmseg"
 )
 
 func main() {
 	file := "data//cwsharp.dawg"
-	tokenizer := cwsharp.NewStandardTokenizer(file, true)
+	tokenizer := mmseg.New(file)
 	for _, text := range []string{"长春市长春药店", "研究生命起源", "Hello,World!"} {
-		for token, next := tokenizer.Traverse(text)(); next != nil; token, next = next() {
-			fmt.Printf(token.String())
+		for iter := tokenizer.Traverse(cwsharp.ReadString(text)); iter.Next(); {
+			fmt.Print(iter.Cur())
 			fmt.Print(" / ")
 		}
 		fmt.Println()

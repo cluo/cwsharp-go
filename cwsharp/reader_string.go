@@ -35,7 +35,7 @@ func (r *buffReader) Pos() int {
 	return r.off
 }
 
-func NewStringReader(src string) Reader {
+func ReadString(src string) Reader {
 	r := &buffReader{}
 	r.Init([]rune(src))
 	return r

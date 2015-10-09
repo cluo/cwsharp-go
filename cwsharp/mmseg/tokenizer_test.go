@@ -7,9 +7,9 @@ import (
 )
 
 func Test1(t *testing.T) {
-	input := "研究生命起源."
-	tokenizer := New("D:\\gorepos\\src\\github.com\\zhengchun\\cwsharp-go\\data\\cwsharp.dawg")
-	iter := tokenizer.Traverse(cwsharp.NewStringReader(input))
+	input := "研究生命起源.一次性交100元"
+	tokenizer := New("https://github.com/zhengchun/cwsharp-go/raw/master/data/cwsharp.dawg")
+	iter := tokenizer.Traverse(cwsharp.ReadString(input))
 	for iter.Next() {
 		fmt.Println(iter.Cur())
 	}

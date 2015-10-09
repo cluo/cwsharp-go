@@ -1,7 +1,6 @@
 package mmseg
 
 import (
-	"bufio"
 	"os"
 	"strings"
 )
@@ -35,9 +34,7 @@ func (this *WordUtil) Save(file string) {
 		panic(err)
 	}
 	defer f.Close()
-	w := bufio.NewWriter(f)
-	coder.Encode(w, dawg)
-	w.Flush()
+	coder.Encode(f, dawg)
 }
 
 func (this *WordUtil) Load(file string) {
@@ -46,8 +43,7 @@ func (this *WordUtil) Load(file string) {
 		panic(err)
 	}
 	defer f.Close()
-	r := bufio.NewReader(f)
 	coder := dawgCoder{DawgFileVersion}
-	dawg := coder.Decode(r)
+	dawg := coder.Decode(f)
 	this.wordbag = dawg.MatchsPrefix("")
 }
