@@ -1,14 +1,12 @@
-// Copyright (c) CWSharp. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-package cwsharp
+package mmseg
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"hash/fnv"
+	"io"
 	"sort"
 )
 
@@ -239,8 +237,7 @@ func buildDawg(wordBag map[string]int32) *dawg {
 }
 
 //保存到文件
-func (coder *dawgCoder) Encode(w *bufio.Writer, dawg *dawg) {
-	defer w.Flush()
+func (coder *dawgCoder) Encode(w io.Writer, dawg *dawg) {
 	var count int32
 	nodeLabels := make(map[*dawgNode]int32, 0)
 	for node, next := dawg.root.Descendants(false)(); next != nil; node, next = next() {
@@ -300,7 +297,7 @@ func (coder *dawgCoder) Encode(w *bufio.Writer, dawg *dawg) {
 }
 
 //读取文件
-func (coder *dawgCoder) Decode(r *bufio.Reader) *dawg {
+func (coder *dawgCoder) Decode(r io.Reader) *dawg {
 	var fileVersion float32
 	binary.Read(r, binary.LittleEndian, &fileVersion)
 	if coder.version != fileVersion {
@@ -352,4 +349,10 @@ func (coder *dawgCoder) Decode(r *bufio.Reader) *dawg {
 		}
 	}
 	return &dawg{root}
+}
+
+func fnvHash(input []byte) uint32 {
+	h := fnv.New32()
+	h.Write(input)
+	return h.Sum32()
 }
