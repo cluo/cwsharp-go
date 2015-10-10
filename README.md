@@ -1,6 +1,6 @@
-﻿CWSharp-Go
-====
-中文分词包(golang)，支持中英文，混合词组，自定义字典，具有良好的自定义分词扩展。[CWSharp](https://github.com/yamool/CWSharp)的Golang版本.
+﻿分词包(golang)，支持中英文，混合词组，自定义字典，具有良好的自定义分词扩展。
+
+C#版本：[CWSharp-C#](https://github.com/yamool/CWSharp)
 
 安装&运行
 ====
@@ -16,7 +16,7 @@
 
 - bigram - 二元分词包
 
-- mmseg -  基于词典的分词包,支持自定义字典和中英文混合
+- mmseg -  基于词典的分词包,支持自定义字典和中英文混合。字典采用[DAFSA](https://en.wikipedia.org/wiki/Deterministic_acyclic_finite_state_automaton)
 
 示例
 ====
@@ -37,3 +37,8 @@ func main() {
 	}
 }
 ```
+
+更新日志
+====
+- 1.0 - C#版本的移植
+- 1.1 - 重构架构方面的设计，实现了自定义分词扩展。
