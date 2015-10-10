@@ -8,8 +8,16 @@ import (
 
 func main() {
 	file := "data//cwsharp.dawg"
-	tokenizer := mmseg.New(file)
-	for _, text := range []string{"长春市长春药店", "研究生命起源", "Hello,World!"} {
+	tokenizer := cwsharp.NewStopwordFilter(mmseg.New(file))
+	w := map[string]bool{"the": true}
+	tokenizer.CheckIgnore = func(t cwsharp.Token) bool {
+		_, ok := w[t.Text()]
+		if t.Kind() == cwsharp.PUNCT || ok {
+			return true
+		}
+		return false
+	}
+	for _, text := range []string{"长春市长春药店", "The quick brown fox jumps over the lazy dog"} {
 		for iter := tokenizer.Traverse(cwsharp.ReadString(text)); iter.Next(); {
 			fmt.Print(iter.Cur())
 			fmt.Print(" / ")
