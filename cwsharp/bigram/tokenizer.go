@@ -67,7 +67,7 @@ func (iter *TokenIterator) Cur() cwsharp.Token {
 func cjkToken(r cwsharp.Reader, s bool) ([]rune, bool) {
 	ch := r.ReadRule()
 	if c := r.Peek(); c != cwsharp.EOF && isCjk(c) {
-		return []rune{ch, r.Peek()}, true
+		return []rune{ch, c}, true
 	} else if s {
 		return []rune{ch}, true
 	}
