@@ -12,7 +12,7 @@ func (r *buffReader) Init(src []rune) {
 }
 
 func (r *buffReader) ReadRule() rune {
-	if r.off >= len(r.src) {
+	if r.off == len(r.src) {
 		return EOF
 	}
 	ch := r.src[r.off]
@@ -21,10 +21,10 @@ func (r *buffReader) ReadRule() rune {
 }
 
 func (r *buffReader) Peek() rune {
-	if r.off+1 >= len(r.src) {
+	if r.off == len(r.src) {
 		return EOF
 	}
-	return r.src[r.off+1]
+	return r.src[r.off]
 }
 
 func (r *buffReader) Seek(offset int) {
