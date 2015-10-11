@@ -36,7 +36,7 @@ func (t *Tokenizer) init(r io.Reader) {
 func (t *Tokenizer) Traverse(r cwsharp.Reader) cwsharp.TokenIterator {
 	return &TokenizerIterator{
 		p:      t,
-		inner:  simple.New().Traverse(r),
+		inner:  simple.Default.Traverse(r),
 		reader: r,
 	}
 }
