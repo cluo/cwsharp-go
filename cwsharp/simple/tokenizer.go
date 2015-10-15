@@ -10,6 +10,9 @@ import (
 
 var done error = errors.New("No more token to read.")
 
+// 默认实例对象
+var Default *Tokenizer = &Tokenizer{DefaultCheckContinue}
+
 type Tokenizer struct {
 	// 自定义字符组合的策略
 	CheckContinue func(r cwsharp.Reader, ch rune, via []rune) (cwsharp.Kind, bool)

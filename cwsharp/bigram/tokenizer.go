@@ -32,7 +32,7 @@ func New() *Tokenizer {
 
 func (t *Tokenizer) Traverse(r cwsharp.Reader) cwsharp.TokenIterator {
 	return &TokenIterator{
-		inner:  simple.New().Traverse(r),
+		inner:  simple.Default.Traverse(r),
 		reader: r,
 		state:  true,
 	}
