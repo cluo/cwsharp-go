@@ -18,7 +18,7 @@ func main() {
 		return false
 	}
 	for _, text := range []string{"长春市长春药店", "The quick brown fox jumps over the lazy dog"} {
-		for iter := tokenizer.Traverse(cwsharp.ReadString(text)); iter.Next(); {
+		for iter := tokenizer.Traverse(cwsharp.NewStringReader(text)); iter.Next(); {
 			fmt.Print(iter.Cur())
 			fmt.Print(" / ")
 		}

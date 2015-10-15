@@ -1,4 +1,4 @@
-﻿分词包(golang)，支持中英文，混合词组，自定义字典，具有良好的自定义分词扩展。
+分词包(golang)，支持中英文，混合词组，自定义字典，具有良好的自定义分词扩展。
 
 C#版本：[CWSharp-C#](https://github.com/yamool/CWSharp)
 
@@ -31,7 +31,7 @@ import (
 
 func main() {
 	tokenizer := mmseg.New("data//cwsharp.dawg")
-	for iter := tokenizer.Traverse(cwsharp.ReadString(text)); iter.Next(); {
+	for iter := tokenizer.Traverse(cwsharp.NewStringReader(text)); iter.Next(); {
 		token:=iter.Cur()
 		fmt.Printf("%s:%s\n", token.Text(), token.Kind())
 	}

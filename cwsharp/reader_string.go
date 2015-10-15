@@ -1,17 +1,16 @@
 package cwsharp
 
-type buffReader struct {
+type stringReader struct {
 	src []rune
 	off int
-	Reader
 }
 
-func (r *buffReader) Init(src []rune) {
+func (r *stringReader) Init(src []rune) {
 	r.src = src
 	r.off = 0
 }
 
-func (r *buffReader) ReadRule() rune {
+func (r *stringReader) ReadRule() rune {
 	if r.off == len(r.src) {
 		return EOF
 	}
@@ -20,23 +19,23 @@ func (r *buffReader) ReadRule() rune {
 	return ch
 }
 
-func (r *buffReader) Peek() rune {
+func (r *stringReader) Peek() rune {
 	if r.off == len(r.src) {
 		return EOF
 	}
 	return r.src[r.off]
 }
 
-func (r *buffReader) Seek(offset int) {
+func (r *stringReader) Seek(offset int) {
 	r.off = offset
 }
 
-func (r *buffReader) Pos() int {
+func (r *stringReader) Pos() int {
 	return r.off
 }
 
-func ReadString(src string) Reader {
-	r := &buffReader{}
+func NewStringReader(src string) Reader {
+	r := &stringReader{}
 	r.Init([]rune(src))
 	return r
 }
