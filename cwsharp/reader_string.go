@@ -1,5 +1,9 @@
 package cwsharp
 
+import (
+	"unicode"
+)
+
 type stringReader struct {
 	src []rune
 	off int
@@ -16,14 +20,14 @@ func (r *stringReader) ReadRule() rune {
 	}
 	ch := r.src[r.off]
 	r.off += 1
-	return ch
+	return unicode.ToLower(ch)
 }
 
 func (r *stringReader) Peek() rune {
 	if r.off == len(r.src) {
 		return EOF
 	}
-	return r.src[r.off]
+	return unicode.ToLower(r.src[r.off])
 }
 
 func (r *stringReader) Seek(offset int) {

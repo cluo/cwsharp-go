@@ -1,6 +1,7 @@
 package cwsharp
 
 import (
+	"unicode"
 	"bufio"
 	"fmt"
 	"io"
@@ -32,9 +33,9 @@ func (b *bufReader) ReadRule() rune {
 	r := b.buf[b.offset]
 	b.offset += 1
 	if r == 65279 { //BOM-utf8
-		return b.ReadRule()
+		r= b.ReadRule()
 	}
-	return r
+	return normalize(r)
 }
 
 func (b *bufReader) Peek() rune {
@@ -44,9 +45,9 @@ func (b *bufReader) Peek() rune {
 	r := b.buf[b.offset]
 	if r == 65279 {
 		b.ReadRule() //ignore next rune
-		return b.Peek()
+		r= b.Peek()
 	}
-	return r
+	return unicode.ToLower(r)
 }
 
 func (b *bufReader) Seek(offset int) {
@@ -66,4 +67,13 @@ func (b *bufReader) fill() bool {
 	b.buf = []rune(line)
 	fmt.Println(b.buf)
 	return true
+}
+
+func normalize(r rune) rune {
+	if r >= 0x41 && r <= 0x5A { //A-Z
+		return r + 32
+	} else if r >= 0xff01 && r <= 0xff5d {
+		return r - 0xFEE0
+	}
+	return r
 }
