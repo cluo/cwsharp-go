@@ -1,141 +1,90 @@
-// 英文分词包，提供对包含英文、数字或字符分隔符组成的字符串分词
-// 支持下列混合格式:12-ab,ak49,12.1,P.M?
+//
 
-package simple
+package simpletokenizer
 
 import (
-	"fmt"
+	"bufio"
+	"io"
+
 	"github.com/zhengchun/cwsharp-go/cwsharp"
-	"unicode"
 )
 
-type Tokenizer struct {
-	//CheckContinue func(r cwsharp.Reader, ch rune, via []rune) (cwsharp.Kind, bool)
+type tokenizer struct{}
+
+type iterator struct {
+	r   *bufio.Reader
+	buf []rune
+
+	len, pos int
 }
 
-type Token struct {
-	text string
-	kind cwsharp.Kind
-}
-
-func (t *Token) Text() string {
-	return t.text
-}
-
-func (t *Token) Kind() cwsharp.Kind {
-	return t.kind
-}
-
-func (t *Token) String() string {
-	return fmt.Sprintf("%s : %s", t.text, t.kind)
-}
-
-type TokenIterator struct {
-	p      *Tokenizer
-	ch     cwsharp.Token
-	reader cwsharp.Reader
-}
-
-func (t *Tokenizer) Traverse(r cwsharp.Reader) cwsharp.TokenIterator {
-	//if t.CheckContinue == nil {
-	//	t.CheckContinue = DefaultCheckContinue
-	//}
-	return &TokenIterator{
-		reader: r,
-		p:      t,
+func (t *tokenizer) Tokenize(r io.Reader) cwsharp.Iterator {
+	return &iterator{
+		r:   bufio.NewReader(r),
+		buf: make([]rune, 8),
 	}
 }
 
-func New() *Tokenizer {
-	return &Tokenizer{}
-}
-
-func isPunct(c rune) bool {
-	return unicode.IsSpace(c) || unicode.IsPunct(c) || unicode.IsSymbol(c)
-}
-
-func isLetter(c rune) bool {
-	return unicode.IsLower(c) || unicode.IsUpper(c)
-}
-
-func isCjk(c rune) bool {
-	return unicode.Is(unicode.Scripts["Han"], c)
-}
-
-func isNumer(c rune) bool {
-	return unicode.IsNumber(c)
-}
-
-func (iter *TokenIterator) Next() bool {
-	if iter.reader.Peek() == cwsharp.EOF {
-		return false
-	}		
-	ch := iter.reader.ReadRule()
-	if isCjk(ch) {
-		iter.ch = &Token{string(ch), cwsharp.CJK}
-		return true
+// resize the buffer capacity.
+func (iter *iterator) resize(size int) {
+	if size == len(iter.buf) {
+		buf := make([]rune, size*2)
+		copy(buf, iter.buf)
+		iter.buf = buf
 	}
+}
+
+func (iter *iterator) Next() (cwsharp.Token, bool) {
+	if iter.pos < iter.len {
+		r := iter.buf[iter.pos]
+		token := cwsharp.Token{Text: string(r), Kind: cwsharp.DetermineKind(r)}
+		iter.pos++
+		return token, true
+	}
+
 	var kind cwsharp.Kind
-	var via []rune
-	if isLetter(ch){
-		for ch != cwsharp.EOF {
-			if isLetter(ch) {
-				via = append(via, ch)
-				kind |= cwsharp.LETTER
-			} else if isNumer(ch) {
-				via = append(via, ch)
-				kind |= cwsharp.NUMERAL
-			} else {
-				nextch := iter.reader.Peek()
-				if ch == '-' && (isNumer(nextch) || isLetter(nextch)) {
-					via = append(via, ch)
-					kind |= cwsharp.LETTER
-				} else {
-					break
-				}
-			}
-			ch = iter.reader.ReadRule()
+	var length, size int
+	for {
+		r, _, err := iter.r.ReadRune()
+		if err == io.EOF {
+			goto exit
 		}
-		iter.ch = &Token{string(via), kind}
-		return true
-	} else if isNumer(ch) {
-		times := 0
-		endIndex := 0
-		offset:=iter.reader.Pos()
-		for i := 0; ch != cwsharp.EOF; i++ {
-			if isNumer(ch) {
-				via = append(via, ch)
-				kind |= cwsharp.NUMERAL
-			} else if isLetter(ch) {
-				via = append(via, ch)
-				kind |= cwsharp.LETTER
-			} else if ch == '.'{
-				if kind&cwsharp.LETTER == cwsharp.LETTER{
-					via = via[:endIndex]
-					iter.reader.Seek(iter.reader.Pos() - 1)
-					break
-				}else if times>0{
-					//BUG 2015.1.1
-					via = via[:endIndex]
-					iter.reader.Seek(offset+endIndex-1)
-					break
-				}
-				via = append(via, ch)
-				endIndex = i
-				times++
-			} else {				
-				iter.reader.Seek(iter.reader.Pos() - 1)
-				break
-			}
-			ch = iter.reader.ReadRule()
+
+		iter.resize(length)
+		iter.buf[length] = r
+		length++
+
+		switch cwsharp.DetermineKind(r) {
+		case cwsharp.PUNCT:
+			goto exit
+		case cwsharp.LETTER:
+			kind |= cwsharp.LETTER
+			size++
+		case cwsharp.NUMERAL:
+			kind |= cwsharp.NUMERAL
+			size++
+		case cwsharp.CJK:
+			goto exit
+		default:
+			goto exit
 		}
-		iter.ch = &Token{string(via), kind}
-		return true
 	}
-	iter.ch = &Token{string(ch), cwsharp.PUNCT}
-	return true
+
+exit:
+
+	if length == 0 {
+		return cwsharp.Token{}, false
+	}
+	if length == 1 {
+		size = 1
+		kind = cwsharp.DetermineKind(iter.buf[0])
+	}
+	token := cwsharp.Token{Text: string(iter.buf[:size]), Kind: kind}
+	iter.pos = size
+	iter.len = length
+	return token, true
 }
 
-func (iter *TokenIterator) Cur() cwsharp.Token {
-	return iter.ch
+func New() cwsharp.Tokenizer {
+	return &tokenizer{}
 }

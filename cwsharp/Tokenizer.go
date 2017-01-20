@@ -1,10 +1,12 @@
 package cwsharp
 
+import "io"
+
+// The text tokenizer.
 type Tokenizer interface {
-	Traverse(r Reader) TokenIterator
+	Tokenize(io.Reader) Iterator
 }
 
-type TokenIterator interface {
-	Next() bool
-	Cur() Token
+type Iterator interface {
+	Next() (Token, bool)
 }
