@@ -3,7 +3,7 @@ package cwsharp
 import "io"
 
 // Token iterator.
-type Iterator func() Token
+type Iterator func() (Token, bool)
 
 // Tokenizer is an interface that divides text into a
 // sequence of tokens.

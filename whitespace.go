@@ -1,151 +1,90 @@
 package cwsharp
 
 import (
-	"bufio"
 	"bytes"
 	"io"
 )
 
-/*
-type scanner struct {
-	rd     *bufio.Reader
-	buf    []rune
-	bufPos int
-	bufLen int
-}
+var tokenEOF = Token{Type: EOF}
 
-// checkBuff check the buffer capacit and expand size.
-func (s *scanner) checkBuff() {
-	if size := s.bufLen; size == len(s.buf) {
-		buf := make([]rune, size<<1)
-		copy(buf, s.buf)
-		s.buf = buf
-	}
-}
-
-func (s *scanner) read() (r rune, err error) {
-	if s.bufPos < s.bufLen {
-		r = s.buf[s.bufPos]
-		s.bufPos++
-		return
-	}
-	r, _, err = s.rd.ReadRune()
-	s.checkBuff()
-
-	s.buf[s.bufLen] = r
-	s.bufLen++
-	s.bufPos++
-	return
-}
-
-func (s *scanner) peek() (r rune, err error) {
-	if s.bufPos < s.bufLen {
-		r = s.buf[s.bufPos]
-		return
-	}
-	r, _, err = s.rd.ReadRune()
-	s.checkBuff()
-
-	s.buf[s.bufLen] = r
-	s.bufLen++
-	return
-}
-
-
-func scanDigitalOrAlphabets(s *scanner) string {
-	var (
-		size int
-	)
-	for {
-		r, err := s.read()
-		if err == io.EOF {
-			break
-		}
-		if kind := DeterminedKind(r); kind != 1 {
-			break
-		}
-		size++
-	}
-	text := string(s.buf[:size])
-	s.buf[0] = s.buf[s.bufLen-1]
-	s.bufPos = 0
-	s.bufLen = s.bufLen - size
-	return text
-}
-
-*/
-
-func whitespaceTokenize(b *bytes.Buffer, r *bufio.Reader) Token {
+func whitespaceTokenize(b *bytes.Buffer, r reader) (Token, bool) {
 	b.Reset()
 	var (
 		ch  rune
 		err error
 		typ Type
 	)
-	if ch, _, err = r.ReadRune(); err == io.EOF {
-		return TokenEOF
+	if ch, _, err = r.ReadRune(); ch == -1 || err == io.EOF {
+		return tokenEOF, false
 	}
 	b.WriteRune(ch)
-	switch DetermineType(ch) {
+	switch determineType(ch) {
 	case PUNC:
 		typ = PUNC
 	case NUMBER:
-		typ = scanDigitals(b, r)
-	case alphabet:
-		scanAlphabets(b, r)
+		typ = scanNumber(b, r)
+	case latinAlpha:
+		scanLetters(b, r)
 		typ = WORD
-	case WORD:
+	case WORD, cjk:
 		typ = WORD
 	}
-	return Token{Text: b.String(), Type: typ}
+	return Token{Text: b.String(), Type: typ}, true
 }
 
-func scanAlphabets(b *bytes.Buffer, r *bufio.Reader) {
+func scanLetters(b *bytes.Buffer, r reader) {
 	for {
 		ch, _, err := r.ReadRune()
-		if err == io.EOF {
-			break
+		if ch == -1 || err == io.EOF {
+			goto exit
 		}
-		switch DetermineType(ch) {
+		switch determineType(ch) {
 		case PUNC:
 			r.UnreadRune()
-			return
-		case alphabet:
+			goto exit
+		case NUMBER, latinAlpha:
 			b.WriteRune(ch)
 		case WORD:
 			r.UnreadRune()
-			return
+			goto exit
 		}
 	}
+exit:
 }
 
-func scanDigitals(b *bytes.Buffer, r *bufio.Reader) (typ Type) {
+func scanNumber(b *bytes.Buffer, r reader) (typ Type) {
 	typ = NUMBER
 	for {
 		ch, _, err := r.ReadRune()
-		if err == io.EOF {
-			break
+		if ch == -1 || err == io.EOF {
+			goto exit
 		}
-		switch DetermineType(ch) {
+		switch determineType(ch) {
 		case PUNC:
+			// check number  is float type?
 			r.UnreadRune()
-			return
-		case alphabet:
+			goto exit
+		case latinAlpha:
 			b.WriteRune(ch)
 			typ = WORD
+		case NUMBER:
+			b.WriteRune(ch)
 		case WORD:
 			r.UnreadRune()
-			return
+			goto exit
 		}
 	}
+exit:
 	return
 }
 
 // WhitespaceTokenize tokenizes a specified text reader
 // on the whitespace token algorithms.
 func WhitespaceTokenize(r io.Reader) Iterator {
-	buf := make([]byte, 6)
-	return func() Token {
-		return whitespaceTokenize(bytes.NewBuffer(buf), bufio.NewReader(r))
+	buff := make([]byte, 8)
+	b := bytes.NewBuffer(buff)
+	rr := newReader(r)
+	return func() (Token, bool) {
+		return whitespaceTokenize(b, rr)
 	}
 }

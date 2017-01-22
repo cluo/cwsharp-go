@@ -6,15 +6,14 @@ import "unicode"
 type Type int
 
 const (
-	// The end of file.
 	EOF    Type = iota
 	PUNC        // .,| []
 	NUMBER      // 12345 12.34
 	WORD        // abc 中文 ABC123 wi-fi
-	alphabet
-)
 
-var TokenEOF = Token{Type: EOF}
+	latinAlpha // [a-z,A-Z]
+	cjk        // 你好，世界
+)
 
 // Token represents a word text and with its kind of type.
 type Token struct {
@@ -25,15 +24,16 @@ type Token struct {
 	Pos int
 }
 
-func DetermineType(r rune) Type {
+func determineType(r rune) Type {
 	switch {
 	case unicode.IsSpace(r) || unicode.IsPunct(r) || unicode.IsSymbol(r):
 		return PUNC
 	case unicode.IsNumber(r):
 		return NUMBER
-	case unicode.IsLower(r) || unicode.IsUpper(r):
-		return alphabet
-		//case unicode.Is(unicode.Scripts["Han"], r):
+	case unicode.IsUpper(r) || unicode.IsLower(r):
+		return latinAlpha
+	case unicode.Is(unicode.Scripts["Han"], r):
+		return cjk
 	}
 	return WORD
 }
