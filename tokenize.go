@@ -3,7 +3,7 @@ package cwsharp
 import "io"
 
 // Token iterator.
-type Iterator func() (Token, bool)
+type Iterator func() Token
 
 // Tokenizer is an interface that divides text into a
 // sequence of tokens.
@@ -13,9 +13,10 @@ type Tokenizer interface {
 	Tokenize(io.Reader) Iterator
 }
 
-func whitespaceTokenize(r *reader) (Token, bool) {
-	for {
+// TokenizerFunc is the Tokenizer utility that help
+// wrappered a specified tokenize function as Tokenizer.
+type TokenizerFunc func(io.Reader) Iterator
 
-	}
-	return Token{}, false
+func (f TokenizerFunc) Tokenize(r io.Reader) Iterator {
+	return f(r)
 }

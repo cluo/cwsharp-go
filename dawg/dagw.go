@@ -24,10 +24,10 @@ func (d *Dawg) Contains(word string) bool {
 		return false
 	}
 	runes := []rune(word)
-	nextNode, ok := d.Root.Next(runes[0])
+	nextNode := d.Root.Next(runes[0])
 	i := 1
-	for ok && i < len(runes) {
-		nextNode, ok = nextNode.next(runes[i])
+	for nextNode != nil && i < len(runes) {
+		nextNode = nextNode.Next(runes[i])
 		i = i + 1
 	}
 
@@ -39,7 +39,7 @@ func (d *Dawg) MatchsPrefix(prefix string) map[string]int32 {
 	nextNode := d.Root
 	runes := []rune(prefix)
 	for i := 0; nextNode != nil && i < len(runes); i++ {
-		nextNode, _ = d.Root.Next(runes[i])
+		nextNode = d.Root.Next(runes[i])
 	}
 	if nextNode == nil {
 		return result
