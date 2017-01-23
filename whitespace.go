@@ -1,14 +1,14 @@
 package cwsharp
 
 import (
-	"bytes"
 	"io"
+	"unicode"
 )
 
 var tokenEOF = Token{Type: EOF}
 
-func whitespaceTokenize(b *bytes.Buffer, r reader) (Token, bool) {
-	b.Reset()
+func whitespaceTokenize(w writer, r reader) (Token, bool) {
+	w.Reset()
 	var (
 		ch  rune
 		err error
@@ -17,22 +17,22 @@ func whitespaceTokenize(b *bytes.Buffer, r reader) (Token, bool) {
 	if ch, _, err = r.ReadRune(); ch == -1 || err == io.EOF {
 		return tokenEOF, false
 	}
-	b.WriteRune(ch)
+	w.WriteRune(ch)
 	switch determineType(ch) {
 	case PUNC:
 		typ = PUNC
 	case NUMBER:
-		typ = scanNumber(b, r)
+		typ = scanNumber(w, r)
 	case latinAlpha:
-		scanLetters(b, r)
+		scanLetters(w, r)
 		typ = WORD
 	case WORD, cjk:
 		typ = WORD
 	}
-	return Token{Text: b.String(), Type: typ}, true
+	return Token{Text: w.String(), Type: typ}, true
 }
 
-func scanLetters(b *bytes.Buffer, r reader) {
+func scanLetters(w writer, r reader) {
 	for {
 		ch, _, err := r.ReadRune()
 		if ch == -1 || err == io.EOF {
@@ -43,8 +43,8 @@ func scanLetters(b *bytes.Buffer, r reader) {
 			r.UnreadRune()
 			goto exit
 		case NUMBER, latinAlpha:
-			b.WriteRune(ch)
-		case WORD:
+			w.WriteRune(ch)
+		default:
 			r.UnreadRune()
 			goto exit
 		}
@@ -52,7 +52,7 @@ func scanLetters(b *bytes.Buffer, r reader) {
 exit:
 }
 
-func scanNumber(b *bytes.Buffer, r reader) (typ Type) {
+func scanNumber(w writer, r reader) (typ Type) {
 	typ = NUMBER
 	for {
 		ch, _, err := r.ReadRune()
@@ -61,15 +61,19 @@ func scanNumber(b *bytes.Buffer, r reader) (typ Type) {
 		}
 		switch determineType(ch) {
 		case PUNC:
-			// check number  is float type?
-			r.UnreadRune()
-			goto exit
+			// check number is float type?
+			if c2, _, _ := r.PeekRune(); ch == '.' && unicode.IsNumber(c2) {
+				w.WriteRune(ch)
+			} else {
+				r.UnreadRune()
+				goto exit
+			}
 		case latinAlpha:
-			b.WriteRune(ch)
+			w.WriteRune(ch)
 			typ = WORD
 		case NUMBER:
-			b.WriteRune(ch)
-		case WORD:
+			w.WriteRune(ch)
+		default: // WORD, cjk
 			r.UnreadRune()
 			goto exit
 		}
@@ -81,10 +85,11 @@ exit:
 // WhitespaceTokenize tokenizes a specified text reader
 // on the whitespace token algorithms.
 func WhitespaceTokenize(r io.Reader) Iterator {
-	buff := make([]byte, 8)
-	b := bytes.NewBuffer(buff)
+	buf := make([]byte, 8)
+	w := newWriter(buf)
 	rr := newReader(r)
+
 	return func() (Token, bool) {
-		return whitespaceTokenize(b, rr)
+		return whitespaceTokenize(w, rr)
 	}
 }

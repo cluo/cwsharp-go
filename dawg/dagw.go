@@ -134,3 +134,15 @@ func (n *Node) HasChilds() bool {
 	}
 	return true
 }
+
+func (n *Node) EOW() bool {
+	return n.eow
+}
+
+func (n *Node) Freq() int {
+	return int(n.frequency)
+}
+
+func (n *Node) Depth() int {
+	return int(n.depth)
+}

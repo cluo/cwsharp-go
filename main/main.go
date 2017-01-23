@@ -2,15 +2,20 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/zhengchun/cwsharp-go"
 )
 
 func main() {
-	iter := cwsharp.WhitespaceTokenize(strings.NewReader("Hello,world!你好，世界！"))
-	for tok, ok := iter(); ok; tok, ok = iter() {
-		fmt.Println(tok.Text)
+	tokenizer, err := cwsharp.New("../data/cwsharp.dawg")
+	if err != nil {
+		panic(err)
 	}
-	fmt.Println("done.")
+	arg := os.Args[1]
+	iter := tokenizer.Tokenize(strings.NewReader(arg))
+	for token, ok := iter(); ok; token, ok = iter() {
+		fmt.Printf("%s/%s ", token.Text, token.Type)
+	}
 }

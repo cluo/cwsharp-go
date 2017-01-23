@@ -15,6 +15,18 @@ const (
 	cjk        // 你好，世界
 )
 
+func (typ Type) String() string {
+	switch typ {
+	case PUNC:
+		return "p"
+	case NUMBER:
+		return "n"
+	case WORD:
+		return "w"
+	}
+	return "eof"
+}
+
 // Token represents a word text and with its kind of type.
 type Token struct {
 	Text string
@@ -22,6 +34,10 @@ type Token struct {
 	Type Type
 	// An arbitrary source position location.
 	Pos int
+}
+
+func isNumber(r rune) bool {
+	return unicode.IsNumber(r)
 }
 
 func determineType(r rune) Type {
