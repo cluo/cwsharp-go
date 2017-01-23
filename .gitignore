@@ -3,6 +3,12 @@
 *.a
 *.so
 
+# vscode
+.vscode
+*.test
+debug
+./build
+
 # Folders
 _obj
 _test
