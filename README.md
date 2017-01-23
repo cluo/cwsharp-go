@@ -17,8 +17,10 @@ $ go run main.go Hello,World!你好，世界!
 cwsharp-go支持多种分词算法，你可以根据需求选择适合自己的或者自定义新的分词算法。
 
 ## mmseg-tokenizer
-	标准的基于词典的分词方法。
-	**Tips: 建议使用单一实例，避免每次分词都需重新加载字典**
+
+标准的基于词典的分词方法。
+
+**tips: 建议使用单一实例，避免每次分词都需重新加载字典**
 
 ```go
 tokenizer, err := cwsharp.New("../data/cwsharp.dawg") //加载字典
@@ -30,7 +32,8 @@ for tok, ok := iter(); ok; tok, ok = iter() {
 ```
 
 ## bigram-tokenizer
-	二元分词方法，无需字典，速度快，支持完整的英文和数字切分。
+
+二元分词方法，无需字典，速度快，支持完整的英文和数字切分。
 
 ```go
 iter := cwsharp.BigramTokenize(strings.NewReader("世界人民大团结万岁!"))
@@ -41,7 +44,9 @@ for token, ok := iter(); ok; token, ok = iter() {
 ```
 
 ## whitespace-tokenizer
-	标准的英文分词，无需字典，适合切分英文的内容，中文会被当做独立的字符输出。
+
+标准的英文分词，无需字典，适合切分英文的内容，中文会被当做独立的字符输出。
+
 ```go
 iter := cwsharp.WhitespaceTokenize(strings.NewReader("Hello,world!你好!"))
 for token, ok := iter(); ok; token, ok = iter() {
@@ -61,17 +66,13 @@ type TokenizerFunc func(io.Reader) Iterator
 - 2.0 [2017-01]
 
 	重写了代码以及目录布局, 尽量将代码简化以及符合golang的使用.
-	
+		
 	- bigram,mmseg,simple三个独立的包整合到一起.
 	- golang标准库的io.Reader代替自定义cwsharp.Reader的实现.
 	- WhitespaceTokenize取代simple包.
 	- BigramTokenize取代bigram包.
-	- Token.Type代替Token.Kind.
-		- PUNC: 
-		- NUMBER: 123,12.2
-		- WORD: a-z,A-Z,中文
+	- Token.Type代替Token.Kind. (PUNC,NUMBER,WORD)
 	- Tokenizer接口约束.
-
 - 1.1 
 	- 重构架构方面的设计，实现了自定义分词扩展。
 - 1.0 
