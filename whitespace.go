@@ -5,44 +5,48 @@ import (
 	"unicode"
 )
 
-var tokenEOF = Token{Type: EOF}
-
-func whitespaceTokenize(w writer, r reader) (Token, bool) {
+func whitespaceTokenize(w writer, r reader) *Token {
 	w.Reset()
 	var (
 		ch  rune
 		err error
 		typ Type
 	)
-	if ch, _, err = r.ReadRune(); ch == -1 || err == io.EOF {
-		return tokenEOF, false
+	ch, _, err = r.ReadRune()
+	if ch == -1 || err == io.EOF {
+		return nil
 	}
+
 	w.WriteRune(ch)
+
 	switch determineType(ch) {
-	case PUNC:
-		typ = PUNC
+	case PUNCT:
+		typ = PUNCT
 	case NUMBER:
 		typ = scanNumber(w, r)
-	case latinAlpha:
-		scanLetters(w, r)
-		typ = WORD
-	case WORD, cjk:
+	case ALPHA:
+		typ = scanLetters(w, r)
+	case WORD:
 		typ = WORD
 	}
-	return Token{Text: w.String(), Type: typ}, true
+	return &Token{Text: w.String(), Type: typ}
 }
 
-func scanLetters(w writer, r reader) {
+func scanLetters(w writer, r reader) (typ Type) {
+	typ = ALPHA
 	for {
 		ch, _, err := r.ReadRune()
 		if ch == -1 || err == io.EOF {
 			goto exit
 		}
 		switch determineType(ch) {
-		case PUNC:
+		case PUNCT:
 			r.UnreadRune()
 			goto exit
-		case NUMBER, latinAlpha:
+		case NUMBER:
+			w.WriteRune(ch)
+			typ = WORD
+		case ALPHA:
 			w.WriteRune(ch)
 		default:
 			r.UnreadRune()
@@ -50,6 +54,7 @@ func scanLetters(w writer, r reader) {
 		}
 	}
 exit:
+	return
 }
 
 func scanNumber(w writer, r reader) (typ Type) {
@@ -60,7 +65,7 @@ func scanNumber(w writer, r reader) (typ Type) {
 			goto exit
 		}
 		switch determineType(ch) {
-		case PUNC:
+		case PUNCT:
 			// check number is float type?
 			if c2, _, _ := r.PeekRune(); ch == '.' && unicode.IsNumber(c2) {
 				w.WriteRune(ch)
@@ -68,7 +73,7 @@ func scanNumber(w writer, r reader) (typ Type) {
 				r.UnreadRune()
 				goto exit
 			}
-		case latinAlpha:
+		case ALPHA:
 			w.WriteRune(ch)
 			typ = WORD
 		case NUMBER:
@@ -89,7 +94,7 @@ func WhitespaceTokenize(r io.Reader) Iterator {
 	w := newWriter(buf)
 	rr := newReader(r)
 
-	return func() (Token, bool) {
+	return IteratorFunc(func() *Token {
 		return whitespaceTokenize(w, rr)
-	}
+	})
 }

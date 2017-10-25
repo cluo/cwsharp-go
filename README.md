@@ -1,6 +1,6 @@
 cwsharp-go
 ====
-cwsharp-go是golang的文本分词包，支持中文、英文以及中英混合词组，除此之外，提供自定义分词的扩展（比如日文、韩文或其它语种）。
+cwsharp-go是Golang实现的中文分词库，支持多种分词模式，支持自定义字典和扩展。
 
 .NET版：[CWSharp-C#](https://github.com/yamool/CWSharp)
 
@@ -25,7 +25,7 @@ cwsharp-go支持多种分词算法，你可以根据需求选择适合自己的�
 ```go
 tokenizer, err := cwsharp.New("../data/cwsharp.dawg") //加载字典
 iter := tokenizer.Tokenize(strings.NewReader("Hello,world!你好,世界!"))
-for tok, ok := iter(); ok; tok, ok = iter() {
+for tok := iter.Next(); tok != nil; tok = iter.Next() {
 	fmt.Printf("%s/%s ", tok.Text, tok.Type)
 }
 >> hello/w ,/p world/w !/p 你好/w ,/p 世界/w !/p
@@ -37,7 +37,7 @@ for tok, ok := iter(); ok; tok, ok = iter() {
 
 ```go
 iter := cwsharp.BigramTokenize(strings.NewReader("世界人民大团结万岁!"))
-for token, ok := iter(); ok; token, ok = iter() {
+for token := iter.Next(); token != nil; token = iter.Next() {
 	fmt.Printf("%s/%s ", token.Text, token.Type)
 }
 >> 世界/w 界人/w 人民/w 民大/w 大团/w 团结/w 结万/w 万岁/w !/p
@@ -49,16 +49,10 @@ for token, ok := iter(); ok; token, ok = iter() {
 
 ```go
 iter := cwsharp.WhitespaceTokenize(strings.NewReader("Hello,world!你好!"))
-for token, ok := iter(); ok; token, ok = iter() {
+for token := iter.Next(); token != nil; token = iter.Next() {
 	fmt.Printf("%s/%s ", token.Text, token.Type)
 }
 >> hello/w ,/p world/w !/p 你/w 好/w !/p
-```
-
-## TokenizerFunc
-	TokenizerFunc是自定义分词的扩展接口帮助类，允许你自定义新的分词。
-```go
-type TokenizerFunc func(io.Reader) Iterator
 ```
 
 版本历史

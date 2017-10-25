@@ -1,9 +1,19 @@
+// CWSharp is a text segmentation package for chinese.
+//
 package cwsharp
 
 import "io"
 
 // Token iterator.
-type Iterator func() (Token, bool)
+type Iterator interface {
+	Next() *Token
+}
+
+type IteratorFunc func() *Token
+
+func (f IteratorFunc) Next() *Token {
+	return f()
+}
 
 // Tokenizer is an interface that divides text into a
 // sequence of tokens.

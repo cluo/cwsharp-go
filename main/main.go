@@ -15,7 +15,7 @@ func main() {
 	}
 	arg := os.Args[1]
 	iter := tokenizer.Tokenize(strings.NewReader(arg))
-	for token, ok := iter(); ok; token, ok = iter() {
+	for token := iter.Next(); token != nil; token = iter.Next() {
 		fmt.Printf("%s/%s ", token.Text, token.Type)
 	}
 }

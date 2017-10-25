@@ -24,7 +24,7 @@ type runeCacheReader struct {
 	buf []rune
 }
 
-func (m *mmsegTokenizer) cjkTokenize(b *runeBuf, w writer, r reader) (Token, bool) {
+func (m *mmsegTokenizer) cjkTokenize(b *runeBuf, w writer, r reader) *Token {
 	nodes_1 := m.matchedNodes(b, 0, r)
 	if len(nodes_1) == 0 {
 		return whitespaceTokenize(w, r)
@@ -85,19 +85,19 @@ func (m *mmsegTokenizer) cjkTokenize(b *runeBuf, w writer, r reader) (Token, boo
 	//fmt.Println(string(b.buf))
 
 	length := chunk.WordPoints[0].Length
-	tok := Token{Text: string(b.buf[:length]), Type: WORD}
+	tok := &Token{Text: string(b.buf[:length]), Type: WORD}
 	b.buf = b.buf[length:]
-	return tok, true
+	return tok
 }
 
-func (m *mmsegTokenizer) tokenize(b *runeBuf, w writer, r reader) (Token, bool) {
+func (m *mmsegTokenizer) tokenize(b *runeBuf, w writer, r reader) *Token {
 	w.Reset()
 
 	// if b still have a any rune we can skip into cjk tokenize.
 	if len(b.buf) == 0 {
 		ch, _, err := r.PeekRune()
 		if ch == -1 || err == io.EOF {
-			return tokenEOF, false
+			return nil
 		}
 
 		// checks specified char has in the lexicon table.
@@ -243,9 +243,9 @@ func (t *mmsegTokenizer) Tokenize(r io.Reader) Iterator {
 	w := newWriter(buf)
 	b := new(runeBuf)
 	rr := newReader(r)
-	return func() (Token, bool) {
+	return IteratorFunc(func() *Token {
 		return t.tokenize(b, w, rr)
-	}
+	})
 }
 
 func loadDawg(file string) (*dawg.Dawg, error) {

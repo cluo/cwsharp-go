@@ -2,27 +2,27 @@ package cwsharp
 
 import "io"
 
-func bigramTokenize(w writer, r reader) (Token, bool) {
+func bigramTokenize(w writer, r reader) *Token {
 	w.Reset()
 	ch, _, err := r.PeekRune()
 	if ch == -1 || err == io.EOF {
-		return tokenEOF, false
+		return nil
 	}
 
-	if determineType(ch) == cjk {
+	if isCjk(ch) {
 		w.WriteRune(ch)
 		r.ReadRune()
 		c2, _, _ := r.PeekRune()
-		if determineType(c2) == cjk {
+		if isCjk(ch) {
 			w.WriteRune(c2)
 			// make sure the next chinese following chinese,
 			// if follow not chinese,ignored it.
 			r.ReadRune()
-			if c3, _, _ := r.PeekRune(); determineType(c3) == cjk {
+			if c3, _, _ := r.PeekRune(); isCjk(c3) {
 				r.UnreadRune()
 			}
 		}
-		return Token{Text: w.String(), Type: WORD}, true
+		return &Token{Text: w.String(), Type: WORD}
 	}
 	return whitespaceTokenize(w, r)
 }
@@ -33,7 +33,7 @@ func BigramTokenize(r io.Reader) Iterator {
 	buf := make([]byte, 8)
 	w := newWriter(buf)
 	rr := newReader(r)
-	return func() (Token, bool) {
+	return IteratorFunc(func() *Token {
 		return bigramTokenize(w, rr)
-	}
+	})
 }
