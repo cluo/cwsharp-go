@@ -4,6 +4,8 @@ cwsharp-go是Golang实现的中文分词库，支持多种分词模式，支持�
 
 .NET版：[CWSharp-C#](https://github.com/yamool/CWSharp)
 
+Python版: [CWSharp-Python](https://github.com/zhengchun/cwsharp-python)
+
 安装&测试
 ====
 ```
